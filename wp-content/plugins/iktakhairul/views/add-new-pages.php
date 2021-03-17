@@ -1,0 +1,1 @@
+<h2 class="new-file-css">Add new pages!</h2>
