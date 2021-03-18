@@ -48,11 +48,59 @@ function add_custom_menu() {
 }
 
 function custom_plugin_func() {
+   $url = 'https://github.com/iktakhairul/wordpress-plugin-development/blob/main/sample.json';
+   // $url = plugins_url('/assets/sample.json', __FILE__);
+    $args = array(
+        'headers' => array(
+            'Content-Type' => 'application\json'
+        ),
+    );
+    $data_option = get_option('sample_json_result');
+
+    if ($data_option == false) {
+        $response = wp_remote_get($url, $args);
+        $body = wp_remote_retrieve_body($response);
+
+        if ($body != null | !empty($body)) {
+            update_option('sample_json_result', $body);
+        }
+        return;
+    }
+    $data = json_decode($data_option);
     include_once PLUGIN_DIR_PATH.'/views/all-pages.php';
+    ?>
+        <div class="wrap">
+            <h1 class="wp-heading-inline">Database Page</h1>
+            <table id="database_table-example" class="display" style="width:100%">
+                <thead>
+                <tr>
+                    <th>User Id</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Phone Number</th>
+                    <th>Email Address</th>
+                </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        foreach ($data->users as $data_line){
+                            echo '<tr>';
+                            echo '<td>'.$data_line->userId.'</td>';
+                            echo '<td>'.$data_line->firstName.'</td>';
+                            echo '<td>'.$data_line->lastName.'</td>';
+                            echo '<td>'.$data_line->phoneNumber.'</td>';
+                            echo '<td>'.$data_line->emailAddress.'</td>';
+                            echo '</tr>';
+                        }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+    <?php
 }
 
 function database_allPage_sub_func() {
-    include_once PLUGIN_DIR_PATH.'/views/all-pages.php';
+   // include_once PLUGIN_DIR_PATH.'/views/all-pages.php';
 }
 
 function database_newPage_sub_func() {
@@ -61,7 +109,11 @@ function database_newPage_sub_func() {
 
 add_action('admin_enqueue_scripts', 'my_admin_scripts');
 
-function my_admin_scripts()  {
+function my_admin_scripts( $hook )  {
+
+    if ('toplevel_page_database-plugin' != $hook) {
+        return;
+    }
     wp_enqueue_style('table_style', plugins_url('/assets/css/jquery.dataTables.min.css', __FILE__), array(), '1.0.0', 'all');
     wp_enqueue_script('table_script', plugins_url('/assets/js/jquery.dataTables.min.js', __FILE__), array('jquery'), '1.0.0', true);
     wp_enqueue_script('table_script-init', plugins_url('/assets/js/init.js', __FILE__), array('table_script'), '1.0.0', true);
